@@ -1,6 +1,6 @@
 # Cheatsheet of WebBreaker Commands:
 
-    List all WebInspect servers found in .config - webinspect_endpoints:
+    List all WebInspect servers found in config.ini - webinspect_endpoints:
     webbreaker webinspect servers
 
     List all WebInspect scans on webinspect-1.example.com and webinspect-2.example.com:
@@ -51,7 +51,7 @@
     Upload to Fortify SSC with command-line authentication:
     webbreaker fortify upload --fortify_user $FORT_USER --fortify_password $FORT_PASS --version important_site_auth
 
-    Upload to Fortify SSC with interactive authentication & application version configured with .config file:
+    Upload to Fortify SSC with interactive authentication & application version configured with config.ini file:
     webbreaker fortify upload --version important_site_auth --scan_name auth_scan
 
     Upload to Fortify SSC with application/project & version name:
@@ -60,7 +60,7 @@
     Download lastest .fpr scan from Fortify SSC with application/project & version name:
     webbreaker fortify download --application my_other_app --version important_site_auth
 
-    Download lastest .fpr scan from Fortify SSC with application/project from .config file & version name:
+    Download lastest .fpr scan from Fortify SSC with application/project from config.ini file & version name:
     webbreaker fortify download --version important_site_auth
 
     Download lastest .fpr scan from Fortify SSC with application/project & version name and command-line authentication:
