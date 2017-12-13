@@ -254,15 +254,15 @@ class WebBreakerHelper(object):
 # FORTIFY LIST OPTIONS:
 #     --application\tProvides a listing of Fortify SSC Version(s) within a specific Application or Project.\n
 #     --fortify_user\tIf provided WebBreaker authenticates to Fortify using these credentials. If not provided\n
-#     --fortify_password\tWebBreaker attempts to use a secret from .config. If no secret is found our\b
+#     --fortify_password\tWebBreaker attempts to use a secret from config.ini. If no secret is found our\b
 #     the secret is no longer valid, you will be prompted for these credentials.\n
 #
 # FORTIFY UPLOAD OPTIONS:
 #     --fortify_user \tIf provided WebBreaker authenticates to Fortify using these credentials. If not provided\n
-#     --fortify_password\tWebBreaker attempts to use a secret for .config. If no secret is found our the secret is\b
+#     --fortify_password\tWebBreaker attempts to use a secret for config.ini. If no secret is found our the secret is\b
 #     no longer valid, you will be prompted for these credentials.\n
 #     --application\tIf provided WebBreaker will look for version under this application name instead of the one\b
-#     provided in .config\n
+#     provided in config.ini\n
 #     --version\tUsed for the command 'fortify upload' this option specifies the application version name and\b
 #     is used to both locate the file to be uploaded and the correct fortify application version\b
 #     to upload the file to.\n
