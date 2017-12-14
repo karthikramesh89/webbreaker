@@ -292,16 +292,22 @@ This api_key to authenticate ThreadFix actions
 Can be found under [webinspect] & [webinspect_policy]. 
 
 #### git_token
+Store Git API auth token for url of `git_repo`. Make sure this token has access to `git_repo`
 
 #### git_repo
 
 #### default_size
 
-#### size
+
+#### size_
+Sets the number for large and small WebInspect scan servers. This helps with _Just-In-Time_ (JIT) scheduling
 
 #### server_
 
 #### endpoint_
+Provides a _Just-In-Time_ (JIT) scheduler or the ability to load balance scans amongst a WebInspect cluster.
+
+Will be moving 'large' & 'medium' under [webinspect_size] in the future.
 
 #### webinspect_policy
 WebInspect scan configuration files for `policies` are versioned and hosted from a GIT repository determined 
@@ -319,20 +325,9 @@ policies shipped with WebInspect are mapped with their respective GUID within th
 *Note:* All custom polices are automatically uploaded to the targeted WebInspect server and must be referenced 
 as a GUID.  
 
-#### webinspect_endpoints
-Provides a _Just-In-Time_ (JIT) scheduler or the ability to load balance scans amongst a WebInspect cluster.
-
-Will be moving 'large' & 'medium' under [webinspect_size] in the future.
-
-#### webinspect_size
-Sets the number for large and small WebInspect scan servers. This helps with _Just-In-Time_ (JIT) scheduling
-
-#### webinspect_default_size
-Will be moved under [webinspect_size] in the future. 
-
-
 
 ### Email `email_config`
+Can be found under [emailer].
 Notifications for start-scan and end-scan events. A simple publisher/subscriber pattern is implemented under 
 the "notifiers" folder.
 
@@ -341,6 +336,14 @@ for creating the desired notification. Currently, two notification types are imp
 
 The email notifier merges the provided event data into an HTML email message and sends the message. All 
 SMTP-related settings are stored in .emailrc, and read during program startup.
+
+#### smtp_host
+####smtp_port
+####from_address
+####to_address
+####default_to_address
+####chatroom
+####email_template
 
 ## Verbose Cheatsheet: Webinspect `webinspect_cheatsheet`
 ### WebInspect Scan `webinspect_scan`
