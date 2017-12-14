@@ -5,7 +5,7 @@
 
 - [Description: `description`](#description)
 
-[User Guide](#user-guide)
+[User Guide `user_guide`](#user-guide)
 
 - [Installation `installation`](#installation)
 - [Supported Features `supported_features`](#supported-features)
@@ -14,8 +14,9 @@
 - [Testing `testing`](#testing)
 - [Notifications `notifications`](#notifications)
 
-[Configurations](#configurations)
+[Configuration `configuration`](#configuration)
 
+- [Example `example_config`](#example-config)
 - [WebBreaker `webbreaker_config`](#webbreaker-config)
 - [Fortify `fortify_config`](#fortify-config)
 - [ThreadFix `threadfix_config`](#threadfix-config)
@@ -24,10 +25,11 @@
 
 [Verbose Cheatsheet: Webinspect `webinspect_cheatsheet`](#verbose-cheatsheet-webinspect)
 
+- [Download: `webinspect_download`](#webinspect-download)
+- [List: `webinspect_list`](#webinspect-list)
+- [Proxy: `webinspect_proxy`](#webinspect-proxy)
 - [Scan: `webinspect_scan`](#webinspect-scan)
 - [Servers: `webinspect_servers`](#webinspect-servers)
-- [List: `webinspect_list`](#webinspect-list)
-- [Download: `webinspect_download`](#webinspect-download)
 
 [Verbose Cheatsheet: Fortify `fortify_cheatsheet`](#verbose-cheatsheet-fortify)
 
@@ -91,10 +93,11 @@ Webbreaker utilizes a structure of upper-level and lower-level commands to enabl
 
 - webbreaker
     - webinspect
+        - download
+        - list
+        - proxy
         - scan
         - servers
-        - list
-        - download
     - fortify
         - list
         - upload
@@ -150,7 +153,7 @@ python setup.py install
 python setup.py test
 ```
 
-### Notifications
+### Notifications `notifications`
 WebBreaker provides notifications for start-scan and end-scan events. A simple publisher/subscriber 
 pattern is implemented under the ```webbreaker/notifiers```.  A Reporter object will hold a collection
 of Notifiers, each of which implements a Notify function responsible for creating the desired notification. 
@@ -163,12 +166,12 @@ settings are stored in [webbreaker/etc/email.ini](https://github.com/target/webb
 If an error occurs on behalf of the notifiers at any point during the process of creating or sending 
 notifications, the event will be logged, without any interruption of WebBreaker execution or the WebInspect scan.
 
-## Configurations
+## Configuration `configuration`
 
 This is a compelte example of what will be generated under ~/.webbreaker/config.ini on the first WebBreaker run
 
 To import your own config file just put 'config.ini' into ~/.webbreaker/config.ini
-### Example 
+### Example `example_config`
 ````ini
 [webbreaker_install]
 dir = .
@@ -253,28 +256,9 @@ email_template = <html>
 	</html>
 ````
 ### WebBreaker `webbreaker_config`
-Global settings for webbreaker.
-
-####[webbreaker_install]
-Directory where webbreaker is installed. The default is set to `.` to signify the current directory of webbreaker. 
-
-*Note:* This will be moved to [webbreaker] `install`
-
-####[git]
-Stores Git API auth token and url of a default WebBreaker Agent.
-
-*Note:* This will be moved to under [webbreaker]
-
-### ThreadFix `threadfix_config`
-#### Configuration `threadfix_config`
-##### host
-Threadfix host that will be used.
-
-##### api_key
-This api_key to authenticate ThreadFix actions
+Global settings for webbreaker. Currently there are none.
 
 ### Fortify `fortify_config`
-#### Configuration `fortify_config`
 Fortify SSC settings can be found under [fortify]
 
 ##### ssc_url
@@ -286,53 +270,66 @@ Static value
 ##### application_name
 Static Value
 
-##### fortify_username
+##### username
 Fortify username that will be used for authentication with ssc_url. It is stored using an encrypted value. Use 
 `webbreaker admin credentials --fortify` to set your username & password.
-##### fortify_password
+
+##### password
 Fortify username that will be used for authentication with ssc_url. It is stored using an encrypted value. Use 
 `webbreaker admin credentials --fortify` to set your username & password.
+
+
+### ThreadFix `threadfix_config`
+Can be found under [threadfix]
+
+##### host
+Threadfix host that will be used.
+
+##### api_key
+This api_key to authenticate ThreadFix actions
 
 ### WebInspect `webinspect_config`
+Can be found under [webinspect] & [webinspect_policy]. 
 
-#### Configuration `webinspect_config`
+#### git_token
+
+#### git_repo
+
+#### default_size
+
+#### size
+
+#### server_
+
+#### endpoint_
+
+#### webinspect_policy
 WebInspect scan configuration files for `policies` are versioned and hosted from a GIT repository determined 
-in `webbreaker/etc/webinspect.ini`.  Additionally, all WebInspect policies and servers are managed from this 
-configuration file.  The section 
+in `git_repo`  Additionally, all WebInspect policies and servers are managed from this configuration file. 
 
 All WebInspect distributions are packaged with a `Default.xml` file that may be overridden and uploaded 
 to the WebInspect deployment with the webbreaker option `--settings`.  The setting xml file contains 
 all possible options for your scan including, a WebInspect scan including policy, workflow and/or login 
 macro, scan depth, and allowed hosts.
 
-
-####[webinspect_endpoints]
-Provides a _Just-In-Time_ (JIT) scheduler or the ability to load balance scans amongst a WebInspect cluster.
-
-Will be moving 'large' & 'medium' under [webinspect_size] in the future.
-
-####[webinspect_size]
-Sets the number for large and small WebInspect scan servers. This helps with _Just-In-Time_ (JIT) scheduling
-
-####[webinspect_default_size]
-Will be moved under [webinspect_size] in the future. 
-
-####[webinspect_repo]
-A unique GIT repo is defined by the user and is mutually exclusive from the WebBreaker source.  The 
-assumption is each WebBreaker installation will have a unique GIT URL defined.  Upon each execution, 
-the repo refreshes *all* settings file(s), assuming that there may be newly created, deletions, or modifications 
-of settings files.  All settings files used in execution must reside in this respective repo 
-under `etc/webinspect/settings`.
-
-*Note:* dir will be deprecated
-
-####[webinspect_policies]
 Grouping of proprietary WebInspect tests to perform.  Tests or rules are represented in an `xml` element with 
 a `.policy` file extension.  Custom tests or Checks are mapped to a unique WebInspect ID.  The mapping for all 
 policies shipped with WebInspect are mapped with their respective GUID within the `[webinspect_policies]` section.
 
 *Note:* All custom polices are automatically uploaded to the targeted WebInspect server and must be referenced 
 as a GUID.  
+
+#### webinspect_endpoints
+Provides a _Just-In-Time_ (JIT) scheduler or the ability to load balance scans amongst a WebInspect cluster.
+
+Will be moving 'large' & 'medium' under [webinspect_size] in the future.
+
+#### webinspect_size
+Sets the number for large and small WebInspect scan servers. This helps with _Just-In-Time_ (JIT) scheduling
+
+#### webinspect_default_size
+Will be moved under [webinspect_size] in the future. 
+
 
 
 ### Email `email_config`
@@ -373,7 +370,7 @@ webbreaker webinspect scan --settings /Users/Matt/Documents/important_site_auth
 Specify name of scan --scan_name ${BUILD_TAG}
 ```--scan_name```
 
-Specify name of settings file, without the .xml extension. WebBreaker will  by default try to locate this file in in the repo found in .config. If your file is not in the repo, you may instead pass an absolute path to the file
+Specify name of settings file, without the .xml extension. WebBreaker will  by default try to locate this file in in the repo found in config.ini. If your file is not in the repo, you may instead pass an absolute path to the file
 ```--settings```
 
 Size of scanner required. Valid values if provided are 'medium' or 'large'
