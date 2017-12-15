@@ -168,46 +168,32 @@ notifications, the event will be logged, without any interruption of WebBreaker 
 
 ## Configuration `configuration`
 
-This is a compelte example of what will be generated under ~/.webbreaker/config.ini on the first WebBreaker run
+This is a complete example of what will be generated under ~/.webbreaker/config.ini on the first WebBreaker run
 
 To import your own config file just put 'config.ini' into ~/.webbreaker/config.ini
 ### Example `example_config`
 ````ini
-[webbreaker_install]
-dir = .
-
 [fortify]
-ssc_url = https://stage-ssc.target.com
+ssc_url = https://fortify.example.com
 project_template = Prioritized High Risk Issue Template
 application_name = WEBINSPECT
-fortify_username = 
-fortify_password = 
+username = 
+password = 
 
 [threadfix]
-host = https://stage-threadfix.target.com/threadfix
-api_key = this_is_my_super_secret_api_key
+host = https://threadfix.example.com:8443/threadfix
+api_key = ZfO0b7dotQZnXSgkMOEuQVoFIeDZwd8OEQE7XXX
 
-[git]
-token = this_is_my_super_secret_token
+[webinspect]
+git_token = 43eb3ddb7152bbecXXabcee04859ee73eaa1XXXX
+git_repo = git@github.com:automationdomination/WebInspect.git
+default_size = size_large
+size_large = 2
+size_medium = 1
+server_01 = https://webinspect-server-1.example.com:8083
+endpoint_01 = %(server_01)s|%(size_large)s
 
-[webinspect_endpoints]
-large = 2
-medium = 1
-server01 = https://tcttswie001p.hq.target.com:8083
-e01 = %(server01)s|%(large)s
-
-[webinspect_size]
-large = 2
-medium = 1
-
-[webinspect_default_size]
-default = large
-
-[webinspect_repo]
-git = git@git.target.com:tts-pse/webinspect.git
-dir = /opt/webbreaker/etc
-
-[webinspect_policies]
+[webinspect_policy]
 aggressivesqlinjection = 032b1266-294d-42e9-b5f0-2a4239b23941
 allchecks = 08cd4862-6334-4b0e-abf5-cb7685d0cde7
 apachestruts = 786eebac-f962-444c-8c59-7bf08a6640fd
@@ -235,24 +221,38 @@ standard = cb72a7c2-9207-4ee7-94d0-edd14a47c15c
 transportlayersecurity = 0fa627de-3f1c-4640-a7d3-154e96cda93c
 
 [emailer]
-smtp_host=smtp.target.com
-smtp_port=25
-from_address=webbreaker-no-reply@target.com
-to_address=TTS-WebInspect-Activity@target.com
-email_template = <html>
-	<head></head>
-	<body></body>
-	</html>
-
-[agent_emailer]
-smtp_host=smtp.target.com
-smtp_port=25
-from_address=webbreaker-no-reply@target.com
+smtp_host = smtp.example.com
+smtp_port = 25
+from_address = webbreaker-no-reply@example.com
+to_address = webbreaker-activity@example.com
 default_to_address = 
 chatroom = 
-email_template = <html>
+email_template = 
+	<html>
 	<head></head>
-	<body></body>
+	<body>
+	<p>Hello,<br /><br />
+	The following scan has logged new activity:
+	<ul>
+	<li>Attack traffic source: {0}</li>
+	<li>Attack traffic target(s):</li>
+	<ul>
+	{4}
+	</ul>
+	<li>Scan name: {1}</li>
+	<li>Scan ID: {2}</li>
+	<li><b>Action: {3}</b></li>
+	</ul>
+	</p>
+	<p>
+	Questions? Concerns? Please contact us in our Hipchat room, &quot;WebBreaker Activity&quot;,
+	or <a href="mailto:webbreaker-team@example.com">email us</a>.
+	</p>
+	<p>
+	Want to manage your subscription to these emails? Use <a href="http://wiki.example.com/index.php/GroupID">GroupID</a>, and
+	add/remove yourself from webbreaker-activity.
+	</p>
+	</body>
 	</html>
 ````
 ### WebBreaker `webbreaker_config`
