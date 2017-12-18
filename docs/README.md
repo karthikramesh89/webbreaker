@@ -170,7 +170,8 @@ notifications, the event will be logged, without any interruption of WebBreaker 
 
 This is a complete example of what will be generated under ~/.webbreaker/config.ini on the first WebBreaker run
 
-To import your own config file just put 'config.ini' into ~/.webbreaker/config.ini
+To import your own config settings, overwrite or modify `~/.webbreaker/config.ini`
+
 ### Example `example_config`
 ````ini
 [fortify]
@@ -259,7 +260,7 @@ email_template =
 Global settings for webbreaker. Currently there are none.
 
 ### Fortify `fortify_config`
-Fortify SSC settings can be found under [fortify]
+Fortify SSC settings can be found under `[fortify]`
 
 ##### ssc_url
 URL of the fortify server to contact
@@ -280,34 +281,36 @@ Fortify username that will be used for authentication with ssc_url. It is stored
 
 
 ### ThreadFix `threadfix_config`
-Can be found under [threadfix]
+Can be found under `[threadfix]`
 
 ##### host
-Threadfix host that will be used.
+Threadfix host that will be contacted for requests
 
 ##### api_key
-This api_key to authenticate ThreadFix actions
+This api key to authenticate ThreadFix actions requested.
 
 ### WebInspect `webinspect_config`
-Can be found under [webinspect] & [webinspect_policy]. 
+Can be found under `[webinspect]` & `[webinspect_policy]`. 
 
 #### git_token
 Store Git API auth token for url of `git_repo`. Make sure this token has access to `git_repo`
 
 #### git_repo
+This is the git repo that will be used to automate the pulling of policies and settings.  
 
 #### default_size
-
+The default size used for scans when not specified. 
 
 #### size_
 Sets the number for large and small WebInspect scan servers. This helps with _Just-In-Time_ (JIT) scheduling
 
 #### server_
+Used with interpolation to create endpoints with server and size. This is the endpoint that you will be hitting 
+for the webinspect scans
 
 #### endpoint_
-Provides a _Just-In-Time_ (JIT) scheduler or the ability to load balance scans amongst a WebInspect cluster.
-
-Will be moving 'large' & 'medium' under [webinspect_size] in the future.
+Provides a _Just-In-Time_ (JIT) scheduler or the ability to load balance scans amongst a WebInspect cluster. This is 
+possible with sizes of the servers combined with endopints.
 
 #### webinspect_policy
 WebInspect scan configuration files for `policies` are versioned and hosted from a GIT repository determined 
@@ -327,7 +330,7 @@ as a GUID.
 
 
 ### Email `email_config`
-Can be found under [emailer].
+Can be found under `[emailer]`.
 Notifications for start-scan and end-scan events. A simple publisher/subscriber pattern is implemented under 
 the "notifiers" folder.
 
@@ -338,38 +341,107 @@ The email notifier merges the provided event data into an HTML email message and
 SMTP-related settings are stored in .emailrc, and read during program startup.
 
 #### smtp_host
+Your smtp server that you will be sending your emails from
+
 ####smtp_port
+SMTP port that will be used when sending emails. 
+
 ####from_address
+Email address name that will be used for sending emails. 
+
 ####to_address
+Who you will be sending emails to on specified events 
+
 ####default_to_address
+If you want to set a default address, if no to address was set
+
 ####chatroom
+Currently only supporting email notifications.
+
 ####email_template
+The template to be used while notifying through emails. 
 
 ## Verbose Cheatsheet: Webinspect `webinspect_cheatsheet`
+
+#### WebInspect Downlaod `webinspect_download`
+##### Options
+
+##### Commands
+For these examples, assume the server has scans with names important_site_auth, important_site_api, important_site_internal
+
+Download the results from the important_site_auth scan found on webinspect-server-2.example.com:8083 as an fpr file
+```
+webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site_auth
+```
+
+Because multiple scan names on webinspect-server-2.example.com:8083 match 'important_site', this command will list them in output and no files will be downloaded
+```
+webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site
+```
+
+Download the results of scan 'important_site_auth' from webinspect-server-2.example.com:8083 in xml format
+```
+webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site_auth -x xml
+```
+
+Download WebInspect scan by ID. Scan will be downloaded as important_site_auth.fpr (This is helpful when multiple scans have the same_name):
+```
+webbreaker webinspect download --server webinspect-2.example.com:8083 --scan_name important_site_auth --scan_id my_important_scans_id
+```
+
+Download the results from the important_site_auth scan found on webinspect-server-2.example.com:8083 as an fpr file. All interaction with webinspect-server-2.example.com:8083 will use http instead of https
+```
+webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site_auth --protocol http
+```
+
+#### WebInspect List `webinspect_list`
+##### Options
+
+##### Commands
+List all scans (scan name, scan id, and scan status) found on the server webinspect-server-1.example.com:8083
+```
+webbreaker webinspect list --server webinspect-server-1.example.com:8083
+```
+
+List all scans (scan name, scan id, and scan status) found on the servers webinspect-server-1.example.com:8083 whose scan name matches the query 'important_site'
+```
+webbreaker webinspect list --server webinspect-server-1.example.com:8083 --scan_name important_site
+```
+
+List all scans (scan name, scan id, and scan status) found on the servers webinspect-server-1.example.com:8083 and webinspect-server-2.example.com:8083
+```
+webbreaker webinspect list --server webinspect-server-1.example.com:8083 --server webinspect-server-2.example.com:8083
+```
+
+List all scans (scan name, scan id, and scan status) found on the servers webinspect-server-1.example.com:8083 and webinspect-server-2.example.com:8083 whose scan name matches the query 'important_site'
+```
+webbreaker webinspect list --server webinspect-server-1.example.com:8083 --server webinspect-server-2.example.com:8083 --scan_name important_site
+```
+
+List all scans (scan name, scan id, and scan status) found on all servers listed in webbreaker/etc/webinspect.ini
+```
+webbreaker webinspect list
+```
+
+List all scans (scan name, scan id, and scan status) containing the query 'important_site' found on all servers listed in webbreaker/etc/webinspect.ini
+```
+webbreaker webinspect list --scan_name important_site
+```
+
+List all scans (scan name, scan id, and scan status) found on the server webinspect-server-1.example.com:8083. Interaction with server will use http instead of https.
+```
+webbreaker webinspect list --server webinspect-server-1.example.com:8083 --protocol http
+```
+
+### WebInspect Proxy `webinspect_proxy`
+#### Options
+
+
+#### Commands
+
+
 ### WebInspect Scan `webinspect_scan`
 ##### Options
-
-##### Commands
-Launch a scan using the settings file important_site_auth.xml (WebBreaker assumes the .xml extension)
-```
-webbreaker webinspect scan --settings important_site_auth
-```
-
-Launch a scan using the settings file important_site_auth.xml (WebBreaker assumes the .xml extension) with the allowed hosts important-site.com and m.important-site.com
-**Note: The start_urls, allowed_hosts, and workflow_macros options can all be used multiple times in this format**
-```
-webbreaker webinspect scan --settings important_site_auth --allowed_hosts important-site.com --allowed_hosts m.important-site.com
-```
-
-Launch a scan using a settings file found by absolute path instead of one downloaded from the webinspect.ini repo
-```
-webbreaker webinspect scan --settings /Users/Matt/Documents/important_site_auth
-```
-#### WebInspect Scan Options
-##### Options
-
-##### Commands
-
 Specify name of scan --scan_name ${BUILD_TAG}
 ```--scan_name```
 
@@ -415,6 +487,22 @@ Include the hosts to scan without the protocol or scheme http:// or https://, ei
 --workflow_macros are located under webbreaker/etc/webinspect/webmacros. Overrides the login macro. Acceptable values are login .webmacros files available on the WebInspect scanner to be used.
 ```--workflow_macros```
 
+##### Commands
+Launch a scan using the settings file important_site_auth.xml (WebBreaker assumes the .xml extension)
+```
+webbreaker webinspect scan --settings important_site_auth
+```
+
+Launch a scan using the settings file important_site_auth.xml (WebBreaker assumes the .xml extension) with the allowed hosts important-site.com and m.important-site.com
+**Note: The start_urls, allowed_hosts, and workflow_macros options can all be used multiple times in this format**
+```
+webbreaker webinspect scan --settings important_site_auth --allowed_hosts important-site.com --allowed_hosts m.important-site.com
+```
+
+Launch a scan using a settings file found by absolute path instead of one downloaded from the webinspect.ini repo
+```
+webbreaker webinspect scan --settings /Users/Matt/Documents/important_site_auth
+```
 
 ### WebInspect Servers `webinspect_servers`
 ##### Options
@@ -423,75 +511,6 @@ Include the hosts to scan without the protocol or scheme http:// or https://, ei
 List all servers found in webbreaker/etc/webinspect.ini
 ```
 webbreaker webinspect servers
-```
-
-#### WebInspect List `webinspect_list`
-##### Options
-
-##### Commands
-List all scans (scan name, scan id, and scan status) found on the server webinspect-server-1.example.com:8083
-```
-webbreaker webinspect list --server webinspect-server-1.example.com:8083
-```
-
-List all scans (scan name, scan id, and scan status) found on the servers webinspect-server-1.example.com:8083 whose scan name matches the query 'important_site'
-```
-webbreaker webinspect list --server webinspect-server-1.example.com:8083 --scan_name important_site
-```
-
-List all scans (scan name, scan id, and scan status) found on the servers webinspect-server-1.example.com:8083 and webinspect-server-2.example.com:8083
-```
-webbreaker webinspect list --server webinspect-server-1.example.com:8083 --server webinspect-server-2.example.com:8083
-```
-
-List all scans (scan name, scan id, and scan status) found on the servers webinspect-server-1.example.com:8083 and webinspect-server-2.example.com:8083 whose scan name matches the query 'important_site'
-```
-webbreaker webinspect list --server webinspect-server-1.example.com:8083 --server webinspect-server-2.example.com:8083 --scan_name important_site
-```
-
-List all scans (scan name, scan id, and scan status) found on all servers listed in webbreaker/etc/webinspect.ini
-```
-webbreaker webinspect list
-```
-
-List all scans (scan name, scan id, and scan status) containing the query 'important_site' found on all servers listed in webbreaker/etc/webinspect.ini
-```
-webbreaker webinspect list --scan_name important_site
-```
-
-List all scans (scan name, scan id, and scan status) found on the server webinspect-server-1.example.com:8083. Interaction with server will use http instead of https.
-```
-webbreaker webinspect list --server webinspect-server-1.example.com:8083 --protocol http
-```
-#### WebInspect Downlaod `webinspect_download`
-##### Options
-
-##### Commands
-For these examples, assume the server has scans with names important_site_auth, important_site_api, important_site_internal
-
-Download the results from the important_site_auth scan found on webinspect-server-2.example.com:8083 as an fpr file
-```
-webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site_auth
-```
-
-Because multiple scan names on webinspect-server-2.example.com:8083 match 'important_site', this command will list them in output and no files will be downloaded
-```
-webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site
-```
-
-Download the results of scan 'important_site_auth' from webinspect-server-2.example.com:8083 in xml format
-```
-webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site_auth -x xml
-```
-
-Download WebInspect scan by ID. Scan will be downloaded as important_site_auth.fpr (This is helpful when multiple scans have the same_name):
-```
-webbreaker webinspect download --server webinspect-2.example.com:8083 --scan_name important_site_auth --scan_id my_important_scans_id
-```
-
-Download the results from the important_site_auth scan found on webinspect-server-2.example.com:8083 as an fpr file. All interaction with webinspect-server-2.example.com:8083 will use http instead of https
-```
-webbreaker webinspect download --server webinspect-server-2.example.com:8083 --scan_name important_site_auth --protocol http
 ```
 
 ## Verbose Cheatsheet: Fortify `fortify_cheatsheet`
