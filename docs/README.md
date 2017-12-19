@@ -255,7 +255,42 @@ email_template =
 	</p>
 	</body>
 	</html>
+# smnp email host, port and email addresses required for email functionality.
+smtp_host=smtp.example.com
+smtp_port=25
+from_address=webbreaker-no-reply@example.com
+to_address=webbreaker-no-reply@example.com
+default_to_address =
+chatroom =
+email_template =
+        <html>
+        <head></head>
+        <body>
+        <p>Hello,<br /><br />
+        The following scan has logged new activity:
+        <ul>
+        <li>Attack traffic source: {0}</li>
+        <li>Attack traffic target(s):</li>
+        <ul>
+        {4}
+        </ul>
+        <li>Scan name: {1}</li>
+        <li>Scan ID: {2}</li>
+        <li><b>Action: {3}</b></li>
+        </ul>
+        </p>
+        <p>
+        Questions? Concerns? Please contact us in our Slack channel, &quot;WebBreaker Activity&quot;,
+        or <a href="mailto:webbreaker-no-reply@example.com">email us</a>.
+        </p>
+        <p>
+        Want to manage your subscription to these emails? Use <a href="http://wiki.example.com/tgtwiki/index.php/GroupID">GroupID</a>, and
+        add/remove yourself from WebBreaker Activity.
+        </p>
+        </body>
+        </html>
 ````
+
 ### WebBreaker `webbreaker_config`
 Global settings for webbreaker. Currently there are none.
 
