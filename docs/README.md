@@ -174,6 +174,9 @@ To import your own config settings, overwrite or modify `~/.webbreaker/config.in
 
 ### Example `example_config`
 ````ini
+[git]
+token = ZfO0b7dotQZnXSgkMOEuQVoFIeDZwd8OEQE7XXX
+
 [fortify]
 ssc_url = https://fortify.example.com
 project_template = Prioritized High Risk Issue Template
@@ -292,7 +295,9 @@ email_template =
 ````
 
 ### WebBreaker `webbreaker_config`
-Global settings for webbreaker. Currently there are none.
+Global settings for webbreaker. 
+### git `git_config`
+This will be moved under `[webinspect]` `git_token`
 
 ### Fortify `fortify_config`
 Fortify SSC settings can be found under `[fortify]`
