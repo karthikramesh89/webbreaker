@@ -469,11 +469,98 @@ webbreaker webinspect list --server webinspect-server-1.example.com:8083 --proto
 ```
 
 ### WebInspect Proxy `webinspect_proxy`
-#### Options
+Webinspect proxy command will be used to setup automated testing and limit the amount of manual work
 
+#### Options
+Flag to specify download of setting (.xml) or webmacro (.webmacro) from a proxy. You may specify a specific server with `--server TEXT` 
+
+Required: `--webmacro` OR `-setting` AND `--proxy_name TEXT` 
+
+```--download``` 
+
+Flag to list WebInspect proxies currently available on all servers in config.ini. You may specify a specific server with `--server TEXT` 
+
+```--list``` 
+
+Assign WebInspect proxy port when starting a scan `--start`
+
+```--port TEXT``` 
+
+Assign WebInspect proxy ID to a command. This is necessary for `--stop`, `--download`, and `--upload`
+
+```--proxy_name TEXT``` 
+
+Flag to download the setting file from a specified proxy. This is used only with `--download` 
+
+```--setting``` 
+
+Assign a URL of a specific WebInspect server to overwrite the config.ini endpoints
+
+```--server TEXT``` 
+
+Flag to start a WebInspect proxy service. You may use `--port`, `--proxy_name`, and/or `--server`. A cert will be 
+downloaded for interacting with the proxy. The cert will be downloaded into `~/.webbreaker`
+
+```--start``` 
+
+Flag to stop & delete a WebInspect proxy service. This command will download the webmacro and settings file before 
+deleting the specified proxy. `--proxy_name` is required. You may specify a `--server`
+
+```--stop``` 
+
+Assign a webmacro file path to upload to a proxy. `--proxy_name` is required. You may specify a `--server`
+
+```--upload TEXT``` 
+
+Flag to download the webmacro file from a specified proxy. This is used only with `--download` 
+
+```--webmacro``` 
 
 #### Commands
 
+Download a webmacro file from 'test-server'
+
+```webbreaker webinspect proxy --download --webmacro --proxy_name test-proxy```
+
+Download a setting file from 'test-server'
+
+```webbreaker webinspect proxy --download --setting --proxy_name test-proxy```
+
+List all proxies on all servers
+
+```webbreaker webinspect proxy --list```
+
+List all proxies from 'test-server'
+
+```webbreaker webinspect proxy --list --server test-server```
+
+Start a proxy with config.ini settings 
+
+```webbreaker webinspect proxy --start```
+
+Start a proxy on 'test-server' 
+
+```webbreaker webinspect proxy --start --server test-server```
+
+Start a proxy with a port '80' & proxy name: 'test-proxy'
+
+```webbreaker webinspect proxy --start --port 80 --proxy_name test-proxy```
+
+Stop a proxy
+
+```webbreaker webinspect proxy --stop```
+
+Stop a proxy on 'test-server'
+
+```webbreaker webinspect proxy --stop --server test-server```
+
+Upload a webmacro file `test.webmacro` with `--proxy_name` set to test-proxy
+
+```webbreaker webinspect proxy --upload test.webmacro --proxy_name test-proxy```
+
+Upload a webmacro file to 'test-server' 
+
+```webbreaker webinspect proxy --upload test.webmacro --proxy_name test-proxy --server test-server```
 
 ### WebInspect Scan `webinspect_scan`
 ##### Options
