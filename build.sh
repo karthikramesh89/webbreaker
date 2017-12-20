@@ -3,7 +3,8 @@
 # pyinstaller --clean -y --windowed webbreaker-osx.spec
 # hdiutil create ./webbreaker.dmg -srcfolder webbreaker.app -ov
 # linux build
-# pyinstaller --clean -y --onefile --dist $(pwd)/rpmbuild/SOURCES/webbreaker-2.0/opt/webbreaker/ --name webbreaker-cli $(pwd)/webbreaker/__main__.py 
+# pyinstaller --clean -y --onefile --dist $(pwd)/rpmbuild/SOURCES/webbreaker-2.0/opt/webbreaker/ --name webbreaker-cli $(pwd)/webbreaker/__main__.py
+# cd rpmbuild/SOURCES;tar cvzf webbreaker-2.0.tar.gz webbreaker-2.0
 
 if type pip 2>/dev/null; then
         if [ ! -f ./requirements.txt ]; then
