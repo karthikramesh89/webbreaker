@@ -19,7 +19,6 @@ except ImportError:  # Python3
     import urllib.request as urllib
 
 import requests.exceptions
-from git.exc import GitCommandError
 import click
 from webbreaker import __version__ as version
 from webbreaker.webbreakerlogger import Logger
@@ -32,7 +31,7 @@ from webbreaker.webinspectscanhelpers import create_scan_event_handler
 from webbreaker.webinspectscanhelpers import scan_running
 from webbreaker.webbreakerhelper import WebBreakerHelper
 from webbreaker.gitclient import GitClient, write_agent_info, read_agent_info, format_git_url
-from webbreaker.gitclient import AgentVerifier
+#from webbreaker.gitclient import AgentVerifier
 from webbreaker.secretclient import SecretClient
 from webbreaker.threadfixclient import ThreadFixClient
 from webbreaker.threadfixconfig import ThreadFixConfig
@@ -40,6 +39,12 @@ from webbreaker.webinspectproxyclient import WebinspectProxyClient
 import re
 import sys
 import subprocess
+
+try:
+    from git.exc import GitCommandError
+except ImportError as e:  # module will fail if git is not installed
+    Logger.app.error("Please install git or add it to your PATH variable -> https://git-scm.com/download.  See log {}!!!".format
+                     (Logger.app_logfile, e))
 
 handle_scan_event = None
 reporter = None
@@ -157,15 +162,15 @@ def scan(config, **kwargs):
     # ...as well as pulling down webinspect server config files from github...
     try:
         webinspect_config.fetch_webinspect_configs(ops)
-    except GitCommandError as e:
-        Logger.app.critical("{} does not have permission to access the git repo: {}".format(
+    except (GitCommandError, ImportError) as e:
+        Logger.app.critical("{} does not have permission to access the git repo or GIT is not installed: {}".format(
             webinspect_config.webinspect_git, e))
         sys.exit(1)
 
     # ...and settings...
     try:
         webinspect_settings = webinspect_config.parse_webinspect_options(ops)
-    except AttributeError as e:
+    except AttributeError:
         Logger.app.error("Your configuration or settings are incorrect see log {}!!!".format(Logger.app_logfile))
         exit(1)
     # OK, we're ready to actually do something now
