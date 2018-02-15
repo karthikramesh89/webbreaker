@@ -41,7 +41,7 @@ def get_console_logger():
         # Use the standard formatter constant
         ch.setFormatter(FORMATTER)
         # Only send stout INFO level messages
-        ch.setLevel(logging.INFO)
+        ch.setLevel(logging.DEBUG)
         # TODO: Delete LessThanFilter if not needed in future
         # ch.addFilter(LessThanFilter(logging.WARNING))
         # add the handler
@@ -65,7 +65,7 @@ def get_app_logger(name=None):
         fh = logging.FileHandler(logger_map[name], mode='a')
         fh.setFormatter(formatter)
         fh.setLevel(logging.DEBUG)
-        #fh.setLevel(logging.INFO)
+        fh.setLevel(logging.INFO)
         app_logger.addHandler(fh)
     except TypeError as e:
         sys.stdout.write(str("App logger error: {}!\n".format(e)))
