@@ -71,8 +71,11 @@ def webinspect_prompt():
 
 
 def format_webinspect_server(server):
+    print("============\n", server)
     server = server.replace('https://', '')
+    print(server, " \n")
     server = server.replace('http://', '')
+    print(server, "\n=============")
     return server
 
 
@@ -454,6 +457,10 @@ def download(config, server, scan_name, scan_id, x, protocol, username, password
 @click.option('--server',
               required=False,
               help="Optional URL of specific WebInspect server(s)")
+@click.option('--protocol',
+              required=False,
+              default="https",
+              help="Optional protocol to be used")
 @click.option('--start',
               required=False,
               is_flag=True,
@@ -475,7 +482,7 @@ def download(config, server, scan_name, scan_id, x, protocol, username, password
 @click.option('--password',
               required=False,
               help="Specify WebInspect password")
-def webinspect_proxy(download, list, port, proxy_name, setting, server, start, stop, upload, webmacro, username, password):
+def webinspect_proxy(download, list, port, proxy_name, setting, server, protocol, start, stop, upload, webmacro, username, password):
     try:
         if server:
             servers = []
@@ -498,8 +505,8 @@ def webinspect_proxy(download, list, port, proxy_name, setting, server, start, s
 
         if list:
             for server in servers:
-                server = 'https://' + server
-                proxy_client = WebinspectProxyClient(proxy_name, port, server, username=username, password=password)
+                #  server = 'https://' + server
+                proxy_client = WebinspectProxyClient(proxy_name, port, server, protocol, username=username, password=password)
                 results = proxy_client.list_proxy()
                 if results and len(results):
                     print("Proxies found on {}".format(proxy_client.host))
@@ -512,7 +519,8 @@ def webinspect_proxy(download, list, port, proxy_name, setting, server, start, s
                     Logger.app.error("No proxies found on '{}'".format(server))
 
         elif start:
-            server = 'https://' + servers[0]
+            #  server = 'https://' + servers[0]
+            server = servers[0]
             proxy_client = WebinspectProxyClient(proxy_name, port, server, username=username, password=password)
             proxy_client.get_cert_proxy()
             result = proxy_client.start_proxy()
@@ -532,8 +540,8 @@ def webinspect_proxy(download, list, port, proxy_name, setting, server, start, s
 
         elif stop:
             for server in servers:
-                server = 'https://' + server
-                proxy_client = WebinspectProxyClient(proxy_name, port, server, username=username, password=password)
+                #  server = 'https://' + server
+                proxy_client = WebinspectProxyClient(proxy_name, port, server, protocol, username=username, password=password)
                 result = proxy_client.get_proxy()
                 if result:
                     proxy_client.download_proxy(webmacro=False, setting=True)
@@ -546,8 +554,8 @@ def webinspect_proxy(download, list, port, proxy_name, setting, server, start, s
 
         elif download:
             for server in servers:
-                server = 'https://' + server
-                proxy_client = WebinspectProxyClient(proxy_name, port, server, username=username, password=password)
+                #  server = 'https://' + server
+                proxy_client = WebinspectProxyClient(proxy_name, port, server, protocol, username=username, password=password)
                 result = proxy_client.get_proxy()
                 if result:
                     proxy_client.download_proxy(webmacro, setting)
@@ -558,8 +566,8 @@ def webinspect_proxy(download, list, port, proxy_name, setting, server, start, s
 
         elif upload:
             for server in servers:
-                server = 'https://' + server
-                proxy_client = WebinspectProxyClient(proxy_name, port, server, username=username, password=password)
+                #  server = 'https://' + server
+                proxy_client = WebinspectProxyClient(proxy_name, port, server, protocol, username=username, password=password)
                 result = proxy_client.get_proxy()
                 if result:
                     proxy_client.upload_proxy(upload)

@@ -9,8 +9,8 @@ from webbreaker.confighelper import Config
 
 
 class WebinspectProxyClient(object):
-    def __init__(self, proxy_name, port, host, username=None, password=None):
-        self.host = host
+    def __init__(self, proxy_name, port, host, protocol, username=None, password=None):
+        self.host = protocol + "://" + host
         self.username = username
         self.password = password
         if proxy_name:
