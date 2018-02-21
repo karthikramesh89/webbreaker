@@ -28,7 +28,7 @@ class FortifyConfig(object):
             self.development_phase = config.get("fortify", "development_phase")
             self.development_strategy = config.get("fortify", "development_strategy")
             self.accessibility = config.get("fortify", "accessibility")
-            self.accessibility = config.get("fortify", "custom_attribute")
+            self.custom_attribute = config.get("fortify", "custom_attribute")
             self.project_template = config.get("fortify", "project_template")
             self.application_name = config.get("fortify", "application_name")
 
