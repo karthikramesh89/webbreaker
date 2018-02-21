@@ -9,9 +9,15 @@ from fortifyapi.fortify import FortifyApi
 
 
 class FortifyClient(object):
-    def __init__(self, fortify_url, project_template=None, application_name=None, fortify_username=None,
-                 fortify_password=None, scan_name=None, extension=None, token=None):
+    def __init__(self, fortify_url, business_risk_ranking=None, development_phase=None, development_strategy=None, accessibility=None, 
+                 custom_attribute=None, project_template=None, application_name=None, fortify_username=None, fortify_password=None,
+                 scan_name=None, extension=None, token=None):
         self.ssc_server = fortify_url
+        self.business_risk_ranking = business_risk_ranking
+        self.development_phase = development_phase
+        self.development_strategy = development_strategy
+        self.accessibility = accessibility
+        self.custom_attribute = custom_attribute                
         self.project_template = project_template
         self.application_name = application_name
         self.user = fortify_username
@@ -111,6 +117,7 @@ class FortifyClient(object):
             project_id = response.data['data']['project']['id']
 
             # At Target, only one attribute is required
+            # TODO: Add new PV SSC Attributes here and refacor the CI Number to the custom_attribute
             response = api.add_project_version_attribute(project_version_id=project_version_id,
                                                          attribute_definition_id=self.__get_attribute_definition_id__(
                                                              search_expression='name:"CI Number"'),
