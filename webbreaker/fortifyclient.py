@@ -9,10 +9,12 @@ from fortifyapi.fortify import FortifyApi
 
 
 class FortifyClient(object):
+    # Added new Fortify SSC Attribute values
     def __init__(self, fortify_url, business_risk_ranking=None, development_phase=None, development_strategy=None, accessibility=None, 
                  custom_attribute=None, project_template=None, application_name=None, fortify_username=None, fortify_password=None,
                  scan_name=None, extension=None, token=None):
         self.ssc_server = fortify_url
+        # Added new Fortify SSC Attribute values
         self.business_risk_ranking = business_risk_ranking
         self.development_phase = development_phase
         self.development_strategy = development_strategy
