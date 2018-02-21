@@ -23,6 +23,12 @@ class FortifyConfig(object):
         try:
             config.read(config_file)
             self.ssc_url = config.get("fortify", "ssc_url")
+            # Added new Fortify SSC Attribute values
+            self.business_risk_ranking = config.get("fortify", "business_risk_ranking")
+            self.development_phase = config.get("fortify", "development_phase")
+            self.development_strategy = config.get("fortify", "development_strategy")
+            self.accessibility = config.get("fortify", "accessibility")
+            self.accessibility = config.get("fortify", "custom_attribute")
             self.project_template = config.get("fortify", "project_template")
             self.application_name = config.get("fortify", "application_name")
 
