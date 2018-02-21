@@ -106,7 +106,7 @@ class FortifyClient(object):
         api = FortifyApi(self.ssc_server, token=self.token, verify_ssl=False)
 
         try:
-            # It's kinda dumb for this api call to require both project name and id?
+            # Requires both project name and id for initial PV creation
             response = api.create_new_project_version(project_name=self.application_name,
                                                       project_template=self.project_template,
                                                       version_name=self.fortify_version,
@@ -118,8 +118,14 @@ class FortifyClient(object):
             project_version_id = response.data['data']['id']
             project_id = response.data['data']['project']['id']
 
-            # At Target, only one attribute is required
-            # TODO: Add new PV SSC Attributes here and refacor the CI Number to the custom_attribute
+            """
+            At Target, only one attribute is required
+            TODO: Treatment of all required attributes development_strategy, accessability, custom_attribute, etc. 
+            may accept null values (unconfirmed?), additional conditions need to be placed here to successfully complete this response.
+            For example default SSC installations require attributeDefinitionId 1, 5, 6, and 7, however other deployments may have a single
+            custom_attribute as is implemented below.  See also 
+            https://github.com/target/fortifyapi/blob/134477ef708e63d8c7b555741f5c69610abad920/fortifyapi/fortify.py#L105
+            """
             response = api.add_project_version_attribute(project_version_id=project_version_id,
                                                          attribute_definition_id=self.__get_attribute_definition_id__(
                                                              search_expression='name:"CI Number"'),
