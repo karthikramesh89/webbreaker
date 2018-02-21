@@ -97,7 +97,13 @@ class Config(object):
         # SSC URL exclude the /ssc context
         self.conf_get('fortify', 'ssc_url', 'https://fortify.example.com')
 
-        # Default Fortify SSC Project Template per Application Version
+        # Default & a custom Fortify SSC Application Version attribute values and
+        # Project or Application Template associated to the Application Version
+        self.conf_get('fortify', 'business_risk_ranking', 'High')
+        self.conf_get('fortify', 'development_phase', 'Active')
+        self.conf_get('fortify', 'development_strategy', 'Internal')
+        self.conf_get('fortify', 'accessibility', 'externalpublicnetwork')
+        self.conf_get('fortify', 'custom_attribute', '')
         self.conf_get('fortify', 'project_template', 'Prioritized High Risk Issue Template')
 
         # Default Fortify SSC Application
