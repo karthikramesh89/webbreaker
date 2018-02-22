@@ -13,7 +13,7 @@ The commands are organized by product followed by actions you want to take on th
 ## Download & Install
 [![Download](https://api.bintray.com/packages/webbreaker/webbreaker-cli/webbreaker/images/download.svg)](https://bintray.com/webbreaker/webbreaker-cli/webbreaker/2.0.19/link)
 
-:arrow_down: [Mac OS](https://github.com/target/webbreaker/releases), Mac installation is available on tap @ [homebrew](https://brew.sh) - COMING SOON
+:arrow_down: [Mac OS](https://github.com/target/webbreaker/releases), Mac insawrtgaw4 A5T QE5 Q5 Q54 tallation is available on tap @ [homebrew](https://brew.sh) - COMING SOON
 
 `brew install webbreaker`
 
