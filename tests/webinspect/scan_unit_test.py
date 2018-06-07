@@ -61,7 +61,7 @@ def _setup_overrides(expected_username=None, expected_password=None, expected_al
 @mock.patch('webbreaker.webinspect.scan.WebInspectScan.scan')
 def test_WebinspectScan_init_success(scan_mock, scan_override_mock, wi_config_mock, config_git_mock):
     # Given
-    overrides = {}  # empty dictionary
+    overrides = _setup_overrides()  # empty dictionary
 
     # When
     scan_object = WebInspectScan(overrides)
@@ -74,7 +74,7 @@ def test_WebinspectScan_init_success(scan_mock, scan_override_mock, wi_config_mo
 
 # These decorators can be a bit ugly at time - they help handle all the ugliness of teardown and setup so it's
 # a net win, but can be a bit abstract at times.
-
+@mock.patch('webbreaker.webinspect.scan.WebInspectScan.xml_parsing')
 @mock.patch('webbreaker.webinspect.scan.WebInspectAPIHelper.create_scan')
 @mock.patch('webbreaker.webinspect.scan.WebInspectScan._scan')
 @mock.patch('webbreaker.webinspect.scan.WebInspectScan._upload_settings_and_policies')
@@ -83,7 +83,7 @@ def test_WebinspectScan_init_success(scan_mock, scan_override_mock, wi_config_mo
 @mock.patch('webbreaker.webinspect.scan.WebInspectConfig')
 @mock.patch('webbreaker.webinspect.scan.ScanOverrides')
 def test_WebInspectScan_scan_success(scan_override_mock, wi_config_mock, auth_mock, git_clone_mock,
-                                     upload_settings_policies_mock, _scan_mock, api_create_scan_mock):
+                                     upload_settings_policies_mock, _scan_mock, api_create_scan_mock, xml_parsing_mock):
     # Given
     overrides = _setup_overrides()
     auth_mock.return_value.authenticate.return_value = ("expected_username", "expected_password")
@@ -97,6 +97,7 @@ def test_WebInspectScan_scan_success(scan_override_mock, wi_config_mock, auth_mo
     assert _scan_mock.call_count == 1
     assert upload_settings_policies_mock.call_count == 1
     assert git_clone_mock.call_count == 1
+    assert xml_parsing_mock.call_count == 1
 
 
 @mock.patch('webbreaker.webinspect.scan.WebInspectLogHelper.log_error_scan_start_failed')
@@ -276,12 +277,9 @@ def test_WebInspectScan_webinspect_git_clone_default_success(scan_mock, scan_ove
                                                      os_mock, log_mock):
     # Given
     overrides = _setup_overrides()
-    scan_object = WebInspectScan(overrides)
-    # Kinda weird, have to set it like this since we mock scan overrides.
-    scan_object.scan_overrides.settings = 'Default'
 
     # When
-    scan_object._webinspect_git_clone()
+    scan_object = WebInspectScan(overrides)
 
     # Expect
     assert log_mock.call_count == 1
@@ -298,13 +296,10 @@ def test_WebInspectScan_webinspect_git_clone_default_success(scan_mock, scan_ove
 def test_WebInspectScan_webinspect_git_clone_not_default_with_valid_git_dir_success(scan_mock, scan_overrides_mock, wi_config_mock, config_mock,
                                                      os_mock, log_mock, check_output_mock):
     # Given
-    overrides = _setup_overrides()
-    scan_object = WebInspectScan(overrides)
-    # Kinda weird, have to set it like this since we mock scan overrides.
-    scan_object.scan_overrides.settings = 'NotDefault'
+    overrides = _setup_overrides(expected_settings='NotDefault')
 
     # When
-    scan_object._webinspect_git_clone()
+    scan_object = WebInspectScan(overrides)
 
     # Expect
     assert log_mock.call_count == 1
@@ -322,14 +317,12 @@ def test_WebInspectScan_webinspect_git_clone_not_default_with_valid_git_dir_succ
 def test_WebInspectScan_webinspect_git_clone_not_default_with_invalid_git_dir_success(scan_mock, scan_overrides_mock, wi_config_mock, config_mock,
                                                       os_mock, os_path_exists_mock, log_mock, check_output_mock):
     # Given
-    overrides = _setup_overrides()
-    scan_object = WebInspectScan(overrides)
+    overrides = _setup_overrides(expected_settings='NotDefault')
+
     os_path_exists_mock.return_value = False
-    # Kinda weird, have to set it like this since we mock scan overrides.
-    scan_object.scan_overrides.settings = 'NotDefault'
 
     # When
-    scan_object._webinspect_git_clone()
+    scan_object = WebInspectScan(overrides)
 
     # Expect
     assert log_mock.call_count == 1
@@ -346,11 +339,10 @@ def test_WebInspectScan_webinspect_git_clone_failure_type_error(scan_mock, scan_
                                                      os_mock, log_mock):
     # Given
     overrides = _setup_overrides()
-    scan_object = WebInspectScan(overrides)
     config_mock.side_effect = TypeError
 
     # When
-    scan_object._webinspect_git_clone()
+    scan_object = WebInspectScan(overrides)
 
     # Expect
     assert log_mock.call_count == 1
@@ -366,17 +358,48 @@ def test_WebInspectScan_webinspect_git_clone_failure_type_error(scan_mock, scan_
 def test_WebInspectScan_webinspect_git_clone_failure_attribute_error(scan_mock, scan_overrides_mock, wi_config_mock, config_mock,
                                                      os_mock, os_path_exists_mock, log_mock):
     # Given
-    overrides = _setup_overrides()
-    scan_object = WebInspectScan(overrides)
+    overrides = _setup_overrides(expected_settings="NotDefault")
     os_path_exists_mock.side_effect = AttributeError
 
 
     # When
     with pytest.raises(AttributeError):
-        scan_object._webinspect_git_clone()
+        scan_object = WebInspectScan(overrides)
 
     # Expect
     assert log_mock.call_count == 1
+
+
+@mock.patch('webbreaker.webinspect.scan.WebInspectScan._get_time')
+@mock.patch('webbreaker.webinspect.scan.ET.ElementTree')
+@mock.patch('webbreaker.webinspect.scan.Vulnerabilities.write_to_json')
+@mock.patch('webbreaker.webinspect.scan.Vulnerabilities.write_to_console')
+@mock.patch('webbreaker.webinspect.scan.Config')
+@mock.patch('webbreaker.webinspect.scan.WebInspectConfig')
+@mock.patch('webbreaker.webinspect.scan.ScanOverrides')
+@mock.patch('webbreaker.webinspect.scan.WebInspectScan.scan')
+def test_xml_parsing_success(scan_mock, scan_overrides_mock, wi_config_mock, config_mock, write_to_console_mock,
+                             write_to_json_mock, element_tree_mock, get_time_mock):
+    # Given
+    overrides = _setup_overrides()
+    scan_object = WebInspectScan(overrides)
+    scan_object.scan_overrides.settings = 'litecart'
+    scan_object.scan_id = "test_scan_id"
+    scan_object.scan_overrides.scan_name = "test_scan_name"
+    filename = "test.xml"
+    scan_object.start_time = '2013-02-01 10:10:08'
+    get_time_mock.side_effect = ['2013-02-01 10:11:08']
+
+    #When
+    scan_object.xml_parsing(filename)
+
+    #Expect
+    assert scan_mock.call_count == 1
+    assert write_to_console_mock.call_count == 1
+    assert write_to_json_mock.call_count == 1
+    write_to_json_mock.assert_called_once_with('test.xml', 'test_scan_name', 'test_scan_id', '2013-02-01 10:10:08', '2013-02-01 10:11:08')
+    write_to_console_mock.assert_called_once_with("test_scan_name")
+
 
 
 @mock.patch('webbreaker.webinspect.scan.WebBreakerHelper.check_run_env')

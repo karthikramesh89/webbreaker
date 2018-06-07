@@ -15,6 +15,8 @@ import random
 import string
 import xml.etree.ElementTree as ElementTree
 import re
+from datetime import datetime
+import json
 
 from webbreaker.common.confighelper import Config
 from webbreaker.common.webbreakerhelper import WebBreakerHelper
@@ -42,21 +44,30 @@ except ImportError:
     from urllib.parse import urlparse
 
 
-
 try:  # python 2
     requests.packages.urllib3.disable_warnings()
 except (ImportError, AttributeError):  # Python3
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+try:
+    import xml.etree.cElementTree as ET
+except ImportError:
+    import xml.etree.ElementTree as ET
+
 
 class WebInspectScan:
     def __init__(self, cli_overrides):
+        # keep track on when the scan starts
+        self.start_time = self._get_time()
+
         # used for multi threading the _is_available API call
         self.config = WebInspectConfig()
 
         # handle all the overrides
         if 'git' not in cli_overrides:  # it shouldn't be in the overrides, but here for potential future support of cli passed git paths
             cli_overrides['git'] = Config().git
+
+        self._webinspect_git_clone(cli_overrides['settings'])
 
         self.scan_overrides = ScanOverrides(cli_overrides)
 
@@ -73,9 +84,6 @@ class WebInspectScan:
         # handle the authentication
         auth_config = WebInspectAuth()
         username, password = auth_config.authenticate(self.scan_overrides.username, self.scan_overrides.password)
-
-        # handle github setup
-        self._webinspect_git_clone()
 
         self._set_api(username=username, password=password)
 
@@ -101,6 +109,51 @@ class WebInspectScan:
         # If we've made it this far, our new credentials are valid and should be saved
         if username is not None and password is not None and not auth_config.has_auth_creds():
             auth_config.write_credentials(username, password)
+
+        #parse through xml file after scan
+        file_name = self.scan_overrides.scan_name + '.xml'
+        self.xml_parsing(file_name)
+
+    def xml_parsing(self, file_name):
+        """
+        if scan complete, open and parse through the xml file and output <host>, <severity>, <vulnerability>, <CWE> in console
+        :return: JSON file
+        """
+        tree = ET.ElementTree(file=file_name)
+        root = tree.getroot()
+
+        vulnerabilities = Vulnerabilities()
+
+        for elem in root.findall('Session'):
+            vulnerability = Vulnerability()
+
+            vulnerability.payload_url = elem.find('URL').text
+
+            for issue in elem.iter(tag='Issue'):
+                vulnerability.vulnerability_name = issue.find('Name').text
+                vulnerability.severity = issue.find('Severity').text
+                vulnerability.webinspect_id = issue.attrib
+
+                vulnerability.cwe = []
+                for cwe in issue.iter(tag='Classification'):
+                    vulnerability.cwe.append(cwe.text)
+
+                vulnerabilities.add(vulnerability)
+
+        Logger.app.info("Exporting scan: {0} as {1}".format(self.scan_id, 'json'))
+        Logger.app.info("Scan results file is available: {0}{1}".format(self.scan_overrides.scan_name, '.json'))
+
+        # keep track on when the scan ends
+        end_time = self._get_time()
+
+        vulnerabilities.write_to_console(self.scan_overrides.scan_name)
+        vulnerabilities.write_to_json(file_name, self.scan_overrides.scan_name, self.scan_id, self.start_time, end_time)
+
+        Logger.app.info("Scan start time: {}".format(self.start_time))
+        Logger.app.info("Scan end time: {}".format(end_time))
+
+    def _get_time(self):
+        return datetime.utcfromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')
 
     def _set_api(self, username, password):
         """
@@ -196,7 +249,7 @@ class WebInspectScan:
         signal(SIGINT, original_sigint_handler)
         signal(SIGTERM, original_sigterm_handler)
 
-    def _webinspect_git_clone(self):
+    def _webinspect_git_clone(self, cli_settings):
         """
         If local file exist, it will use that file. If not, it will go to github and clone the config files
         :return:
@@ -206,11 +259,8 @@ class WebInspectScan:
             etc_dir = config_helper.etc
             git_dir = os.path.join(config_helper.git, '.git')
             try:
-                if self.scan_overrides.settings == 'Default':
+                if cli_settings == 'Default':
                     webinspectloghelper.log_info_default_settings()
-
-                    if os.path.isfile(self.scan_overrides.webinspect_upload_settings + '.xml'):
-                        self.scan_overrides.webinspect_upload_settings = self.scan_overrides.webinspect_upload_settings + '.xml'
 
                 elif os.path.exists(git_dir):
                     webinspectloghelper.log_info_updating_webinspect_configurations(etc_dir)
@@ -541,9 +591,8 @@ class ScanOverrides:
 
     def get_endpoint(self):
         # TODO this needs to be abstracted back to the jit scheduler class - left in due to time considerations
-        jit_scheduler = webbreaker.webinspect.jit_scheduler.WebInspectJitScheduler(server_size_needed=self.scan_size,
-                                                                                   username=self.username,
-                                                                                   password=self.password)
+        jit_scheduler = WebInspectJitScheduler(server_size_needed=self.scan_size, username=self.username,
+                                               password=self.password)
         Logger.app.info("Querying WebInspect scan engines for availability.")
 
         endpoint = jit_scheduler.get_endpoint()
@@ -597,4 +646,58 @@ class ScanOverrides:
             sys.exit(ExitStatus.failure)
         return targets
 
+class Vulnerability:
+    def __init__(self, payload_url=None, severity=None, vulnerability_name=None, webinspect_id=None, cwe=None):
+        self.payload_url = payload_url
+        self.severity = severity
+        self.vulnerability_name = vulnerability_name
+        self.webinspect_id = webinspect_id
+        self.cwe = cwe
 
+    def json_output(self):
+        return {'webinspect_id': self.webinspect_id, 'payload_url': self.payload_url,
+                'severity': self.severity, 'vulnerability_name': self.vulnerability_name, 'cwe': self.cwe}
+
+    def console_output(self):
+        # in order for pretty printing - self.cwe can is a list and we want the first element in the same line with the following elements printed
+        # nicely afterwards.
+        print("\n{0:60} {1:10} {2:40} {3:100} ".format(self.payload_url, self.severity, self.vulnerability_name, self.cwe[0]))
+        for cwe in self.cwe[1:-1]:
+            print("{0:112} {1:100}".format(' '*112, cwe))
+
+
+class Vulnerabilities:
+    def __init__(self):
+        self.vulnerabilities_list = []
+
+    def add(self, vuln):
+        self.vulnerabilities_list.append(vuln)
+
+    def write_to_console(self, scan_name):
+        # write the header
+        print("\nWebbreaker WebInpsect scan {} results:\n".format(scan_name))
+        print("\n{0:60} {1:10} {2:40} {3:100}".format('Payload URL', 'Severity', 'Vulnerability', 'CWE'))
+        print("{0:60} {1:10} {2:40} {3:100}\n".format('-' * 60, '-' * 10, '-' * 40, '-' * 90))
+
+        # write the body of the table
+        for vuln in self.vulnerabilities_list:
+            vuln.console_output()
+
+    def write_to_json(self, file_name, scan_name, scan_id, start_time, end_time):
+        with open(scan_name + '.json', 'a') as fp:
+            # kinda ugly - adds the things to the json that we want.
+            fp.write('{ "scan_start_time" : "' + start_time + '", "scan_end_time" : "' + end_time +
+                     '", "scan_name" : "' + scan_name + '", "scan_id" : "' + scan_id + '", "findings" : ')
+
+            for vuln in self.vulnerabilities_list:
+
+                json.dump(vuln.json_output(), fp)
+                # if element is not last we want to write a ,
+                if vuln is not self.vulnerabilities_list[-1]:
+                    fp.write(",")
+
+            # if no vulnerabilities were found want to still have a valid json so add {}
+            if len(self.vulnerabilities_list) == 0:
+                fp.write("{}")
+
+            fp.write("}")
