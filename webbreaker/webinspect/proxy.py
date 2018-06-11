@@ -127,7 +127,7 @@ class WebInspectProxy:
 
     def get_endpoint(self):
         jit_scheduler = WebInspectJitScheduler(username=self.username, password=self.password)
-        Logger.app.info("Querying WebInspect scan engines for availability.")
+        Logger.app.info("Querying WebInspect servers for availability.")
 
         endpoint = jit_scheduler.get_endpoint()
         return endpoint

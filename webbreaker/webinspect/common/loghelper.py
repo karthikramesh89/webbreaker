@@ -56,13 +56,13 @@ class WebInspectLogHelper(object):
         Logger.app.info("Using webinspect server: -->{}<-- for query".format(server))
 
     def log_info_scan_start(self, endpoint, scan_id):
-        Logger.app.info('WebInspect scan launched on {0} your scan id: {1}\n'.format(endpoint, scan_id))
+        Logger.app.info('WebInspect scan launched on {0} your scan id: {1}'.format(endpoint, scan_id))
 
     def log_error_scan_start_failed(self, e):
         Logger.app.error("Creating the WebInspect scan failed! {}".format(e))
 
     def log_info_successful_scan_export(self, scan_name, extension):
-        Logger.app.info('Scan results file is available: {0}.{1}\n'.format(scan_name, extension))
+        Logger.app.info('Scan results file is available: {0}.{1}'.format(scan_name, extension))
 
     def log_error_failed_scan_export(self, e):
         Logger.app.error('Error saving file locally! {}'.format(e))
@@ -93,3 +93,10 @@ class WebInspectLogHelper(object):
 
     def log_error_no_scans_found(self, scan_name):
         Logger.app.error("No scans matching the name {} where found on this host".format(scan_name))
+
+    def log_error_scan_in_weird_state(self, scan_name, state):
+        Logger.app.error("The Webinspect scan {} has entered a bad state! That state is: {}".format(scan_name, state))
+
+    def log_error_unrecoverable_scan(self, current_status, e):
+        Logger.app.error("Your scan status: {0}, was unrecoverable {1}, please run again!".format(
+            current_status.lower(), e))

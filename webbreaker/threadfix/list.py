@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from webbreaker.threadfix.common.helper import ThreadFixHelper
 from webbreaker.threadfix.common.loghelper import ThreadFixLogHelper
 

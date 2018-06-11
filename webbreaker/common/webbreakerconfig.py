@@ -81,3 +81,4 @@ def trim_ext(file):
         if os.path.isfile(file):
             return os.path.splitext(file)[0]
         return os.path.splitext(os.path.basename(file))[0]
+

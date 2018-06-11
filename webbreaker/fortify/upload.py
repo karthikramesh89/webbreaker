@@ -10,6 +10,7 @@ from webbreaker.fortify.common.helper import FortifyHelper
 from webbreaker.fortify.config import FortifyConfig
 from webbreaker.fortify.authentication import FortifyAuth
 from webbreaker.common.webbreakerlogger import Logger
+from webbreaker.common.webbreakerconfig import trim_ext
 from webbreaker.fortify.common.loghelper import FortifyLogHelper
 
 fortifyloghelper = FortifyLogHelper()
@@ -61,7 +62,8 @@ class FortifyUpload:
                                        fortify_username=self.username,
                                        fortify_password=self.password)
 
-        file_name = fortify_helper.trim_ext(file_name)
+        file_name = trim_ext(file_name)
+
         description = fortify_helper.project_version_description()
         application_id = fortify_helper.get_application_id(application_name)
 
@@ -70,6 +72,8 @@ class FortifyUpload:
             if version_id:
 
                 fortifyloghelper.log_info_found_existing_application_version(application_name,version_name)
+                fortify_helper.upload_application_version_file(version_id=version_id, file_name=file_name)
+
             else:
                 version_id = fortify_helper.create_application_version(application_name=application_name,
                                                                        application_id=application_id,
@@ -77,6 +81,7 @@ class FortifyUpload:
                                                                        application_template=project_template,
                                                                        description=description)
                 fortify_helper.finalize_application_version_creation(version_id, custom_value)
+                fortify_helper.upload_application_version_file(version_id=version_id, file_name=file_name)
         else:
             version_id = fortify_helper.create_application_version(application_name=application_name,
                                                                    application_id=application_id,

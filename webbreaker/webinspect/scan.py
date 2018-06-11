@@ -28,7 +28,6 @@ from webbreaker.webinspect.common.loghelper import WebInspectLogHelper
 from webbreaker.webinspect.jit_scheduler import WebInspectJitScheduler
 from webbreaker.webinspect.webinspect_config import WebInspectConfig
 
-
 webinspectloghelper = WebInspectLogHelper()
 
 try:
@@ -92,27 +91,28 @@ class WebInspectScan:
 
         try:
             Logger.app.debug("Running WebInspect Scan")
-
             self.scan_id = self.webinspect_api.create_scan()
 
             # context manager to handle interrupts properly
             with self._termination_event_handler():
-
                 self._scan()
 
         except (requests.exceptions.ConnectionError, requests.exceptions.HTTPError) as e:
             webinspectloghelper.log_error_scan_start_failed(e)
             sys.exit(ExitStatus.failure)
 
-        Logger.app.info("WebInspect Scan Complete.")
+        Logger.app.debug("WebInspect Scan Complete.")
 
         # If we've made it this far, our new credentials are valid and should be saved
         if username is not None and password is not None and not auth_config.has_auth_creds():
             auth_config.write_credentials(username, password)
 
         #parse through xml file after scan
-        file_name = self.scan_overrides.scan_name + '.xml'
-        self.xml_parsing(file_name)
+        try:
+            file_name = self.scan_overrides.scan_name + '.xml'
+            self.xml_parsing(file_name)
+        except IOError as e:
+            webinspectloghelper.log_error_failed_scan_export(e)
 
     def xml_parsing(self, file_name):
         """
@@ -126,19 +126,22 @@ class WebInspectScan:
 
         for elem in root.findall('Session'):
             vulnerability = Vulnerability()
-
             vulnerability.payload_url = elem.find('URL').text
 
-            for issue in elem.iter(tag='Issue'):
+            # This line should be: for issue in elem.iter(tag='Issue'):
+            # But because of a bug in python 2 it has to be this way.
+            # https://stackoverflow.com/questions/29695794/typeerror-iter-takes-no-keyword-arguments
+            for issue in elem.iter('Issue'):
                 vulnerability.vulnerability_name = issue.find('Name').text
                 vulnerability.severity = issue.find('Severity').text
                 vulnerability.webinspect_id = issue.attrib
 
                 vulnerability.cwe = []
-                for cwe in issue.iter(tag='Classification'):
+                for cwe in issue.iter('Classification'):
                     vulnerability.cwe.append(cwe.text)
 
                 vulnerabilities.add(vulnerability)
+
 
         Logger.app.info("Exporting scan: {0} as {1}".format(self.scan_id, 'json'))
         Logger.app.info("Scan results file is available: {0}{1}".format(self.scan_overrides.scan_name, '.json'))
@@ -201,18 +204,32 @@ class WebInspectScan:
         while not scan_complete:
             current_status = self.webinspect_api.get_scan_status(self.scan_id)
 
-            if current_status.lower() == 'complete':
-                # Now let's download or export the scan artifact in two formats
-                self.webinspect_api.export_scan_results(self.scan_id, 'fpr')
-                self.webinspect_api.export_scan_results(self.scan_id, 'xml')
-                return
-                # TODO add json export
+            try:
+                # Happy path - we completed our scan
+                if current_status.lower() == 'complete':
+                    # Now let's download or export the scan artifact in two formats
+                    self.webinspect_api.export_scan_results(self.scan_id, 'fpr')
+                    self.webinspect_api.export_scan_results(self.scan_id, 'xml')
+                    return
+                    # TODO add json export
 
-            elif current_status.lower() == 'notrunning':
-                webinspectloghelper.log_error_not_running_scan()
-                self._stop_scan(self.scan_id)
+                # The scan can sometimes go from running to not running and that is not what we want.
+                elif current_status.lower() == 'notrunning':
+                    webinspectloghelper.log_error_not_running_scan()
+                    self._stop_scan(self.scan_id)
+                    sys.exit(ExitStatus.failure)
+
+                # This is interesting behavior and we want to log it.
+                # It should never be in a state besides Running, NotRunning and Complete.
+                elif current_status.lower() != "running":
+                    webinspectloghelper.log_error_scan_in_weird_state(scan_name=self.scan_id, state=current_status)
+                    sys.exit(ExitStatus.failure)
+                time.sleep(delay)
+
+            # Sometimes we are not able to get current_status and it is a None response.
+            except AttributeError as e:
+                webinspectloghelper.log_error_unrecoverable_scan(current_status, e)
                 sys.exit(ExitStatus.failure)
-            time.sleep(delay)
 
     def _stop_scan(self, scan_id):
         self.webinspect_api.stop_scan(scan_id)
@@ -593,7 +610,7 @@ class ScanOverrides:
         # TODO this needs to be abstracted back to the jit scheduler class - left in due to time considerations
         jit_scheduler = WebInspectJitScheduler(server_size_needed=self.scan_size, username=self.username,
                                                password=self.password)
-        Logger.app.info("Querying WebInspect scan engines for availability.")
+        Logger.app.info("Querying WebInspect servers for availability.")
 
         endpoint = jit_scheduler.get_endpoint()
         return endpoint
@@ -645,6 +662,7 @@ class ScanOverrides:
             Logger.app.error("Settings file is not configured properly")
             sys.exit(ExitStatus.failure)
         return targets
+
 
 class Vulnerability:
     def __init__(self, payload_url=None, severity=None, vulnerability_name=None, webinspect_id=None, cwe=None):

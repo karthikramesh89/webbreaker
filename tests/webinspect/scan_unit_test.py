@@ -222,27 +222,51 @@ def test_WebInspectScan_scan_complete_success(scan_mock, scan_override_mock, wi_
     assert export_mock.call_count == 2
 
 
-@mock.patch('webbreaker.webinspect.scan.WebInspectAPIHelper.stop_scan')
+@mock.patch('webbreaker.webinspect.scan.WebInspectLogHelper.log_error_scan_in_weird_state')
 @mock.patch('webbreaker.webinspect.scan.WebInspectAPIHelper.get_scan_status')
 @mock.patch('webbreaker.webinspect.scan.Config')
 @mock.patch('webbreaker.webinspect.scan.WebInspectConfig')
 @mock.patch('webbreaker.webinspect.scan.ScanOverrides')
 @mock.patch('webbreaker.webinspect.scan.WebInspectScan.scan')
-def test_WebInspectScan_scan_not_running_failure(scan_mock, scan_override_mock, wi_config_mock, config_git_mock,
-                                              get_status_mock, stop_scan_mock):
+def test_WebInspectScan_scan_bad_state_failure(scan_mock, scan_override_mock, wi_config_mock, config_git_mock,
+                                              get_status_mock, log_mock):
     # Given
     overrides = _setup_overrides()
     scan_object = WebInspectScan(overrides)
     scan_object._set_api(None, None)
     scan_object.scan_id = "test_guid"
-    get_status_mock.return_value = 'notrunning'
+    get_status_mock.return_value = 'SomeRandomState'  # any non: Running, NotRunning, Complete state
 
     # When
     with pytest.raises(SystemExit):
         scan_object._scan()
 
     # Expect
-    assert stop_scan_mock.call_count == 1
+    assert log_mock.call_count == 1
+
+@mock.patch('webbreaker.webinspect.scan.WebInspectLogHelper.log_error_unrecoverable_scan')
+@mock.patch('webbreaker.webinspect.scan.WebInspectAPIHelper.get_scan_status')
+@mock.patch('webbreaker.webinspect.scan.Config')
+@mock.patch('webbreaker.webinspect.scan.WebInspectConfig')
+@mock.patch('webbreaker.webinspect.scan.ScanOverrides')
+@mock.patch('webbreaker.webinspect.scan.WebInspectScan.scan')
+def test_WebInspectScan_scan_failure_none_type_scan_status(scan_mock, scan_override_mock, wi_config_mock, config_git_mock,
+                                              get_status_mock, log_mock):
+    # Given
+    overrides = _setup_overrides()
+    scan_object = WebInspectScan(overrides)
+    scan_object._set_api(None, None)
+    scan_object.scan_id = "test_guid"
+    get_status_mock.return_value = None  # Sometimes we got a None response - we want to exit on that(?)
+
+    # When
+    with pytest.raises(SystemExit):
+        scan_object._scan()
+
+    # Expect
+    assert log_mock.call_count == 1
+
+
 
 
 @mock.patch('webbreaker.webinspect.scan.WebInspectAPIHelper.stop_scan')

@@ -316,6 +316,7 @@ def fortify_download_scan(fortify_user, fortify_password, application, version):
 @click.option('--custom_value',
               help="Specify custom value for creating a new Application Version.")
 def fortify_upload_scan(fortify_user, fortify_password, application, version, scan_name, custom_value):
+
     FortifyUpload(fortify_user, fortify_password, application, version, scan_name, custom_value)
 
 

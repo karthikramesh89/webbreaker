@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 from webbreaker.threadfix.threadfixconfig import ThreadFixConfig
 from threadfixproapi.threadfixpro import ThreadFixProAPI
 from webbreaker.common.api_response_helper import APIHelper
