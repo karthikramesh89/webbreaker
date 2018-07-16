@@ -43,7 +43,8 @@ ADD . /opt/webbreaker
 RUN source /root/venv27/bin/activate \
 && python setup.py install \
 && source /root/venv36/bin/activate \		
-&& python setup.py install
+&& python setup.py install \
+&& ln -s /root/venv27/bin/webbreaker /usr/sbin/webbreaker
 
 ONBUILD venv36
 

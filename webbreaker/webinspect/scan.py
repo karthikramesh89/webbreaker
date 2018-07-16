@@ -705,7 +705,7 @@ class Vulnerabilities:
         with open(scan_name + '.json', 'a') as fp:
             # kinda ugly - adds the things to the json that we want.
             fp.write('{ "scan_start_time" : "' + start_time + '", "scan_end_time" : "' + end_time +
-                     '", "scan_name" : "' + scan_name + '", "scan_id" : "' + scan_id + '", "findings" : ')
+                     '", "scan_name" : "' + scan_name + '", "scan_id" : "' + scan_id + '", "findings" : [')
 
             for vuln in self.vulnerabilities_list:
 
@@ -718,4 +718,4 @@ class Vulnerabilities:
             if len(self.vulnerabilities_list) == 0:
                 fp.write("{}")
 
-            fp.write("}")
+            fp.write("] }")
